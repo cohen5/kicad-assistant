@@ -8,12 +8,14 @@ build/
 .env
 *.bak
 
-# MCP server
+# MCP server (Node - deprecated)
 node_modules/
 mcp/dist/
 mcp/node_modules/
 
 # Python
-src/**/__pycache__/
+kicad_assistant/**/__pycache__/
 .pytest_cache/
 .mypy_cache/
+.eggs/
+*.egg

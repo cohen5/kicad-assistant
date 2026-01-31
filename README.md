@@ -12,31 +12,36 @@ AI-powered design review and repair tool for KiCad PCB projects.
 
 ## Installation
 
-### Option 1: Claude Code Skill
+### Option 1: pip install (Recommended)
+
+```bash
+pip install kicad-assistant
+```
+
+Then configure MCP in `~/.claude/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "kicad": {
+      "command": "kicad-mcp"
+    }
+  }
+}
+```
+
+### Option 2: Claude Code Skill
 
 ```bash
 git clone https://github.com/cohen5/kicad-assistant ~/.claude/skills/kicad-assistant
 pip install kiutils
 ```
 
-### Option 2: MCP Server
+### Option 3: From source
 
 ```bash
-git clone https://github.com/cohen5/kicad-assistant ~/kicad-assistant
-pip install kiutils
-cd ~/kicad-assistant/mcp && npm install && npm run build
-```
-
-Add to `~/.claude/mcp.json`:
-```json
-{
-  "mcpServers": {
-    "kicad": {
-      "command": "node",
-      "args": ["/Users/YOUR_USERNAME/kicad-assistant/mcp/dist/index.js"]
-    }
-  }
-}
+git clone https://github.com/cohen5/kicad-assistant
+cd kicad-assistant
+pip install -e .
 ```
 
 ## Usage Examples
@@ -109,32 +114,30 @@ Export BOM as CSV
 | `pcbway_standard` | 0.127mm | 0.3mm | PCBWay standard |
 | `oshpark` | 0.152mm (6mil) | 0.254mm | OSH Park (purple boards) |
 
-## Project Structure
+## Python API
 
-```
-kicad-assistant/
-├── src/                    # Python library
-│   ├── board/              # PCB analysis & modification
-│   │   ├── analyzer.py     # Board statistics
-│   │   ├── dfm.py          # DFM checks
-│   │   ├── fixer.py        # Auto-fix
-│   │   ├── layers.py       # Power planes
-│   │   └── zones.py        # Copper pours, stitching
-│   ├── schematic/          # Schematic analysis
-│   ├── project/            # Project-level ops
-│   ├── presets/            # Fab rule presets
-│   └── utils/              # Utilities
-├── scripts/                # CLI scripts (legacy)
-├── mcp/                    # MCP server
-└── examples/               # Example boards
+```python
+from kicad_assistant.board.analyzer import analyze_board
+from kicad_assistant.board.dfm import check_dfm
+from kicad_assistant.board.fixer import fix_board_issues
+
+# Analyze
+stats = analyze_board("board.kicad_pcb")
+print(f"Board: {stats.board_width_mm} x {stats.board_height_mm} mm")
+
+# Check DFM
+result = check_dfm("board.kicad_pcb", preset="jlcpcb_standard")
+print(f"Status: {result.status}, Errors: {len(result.errors)}")
+
+# Auto-fix
+fix_result = fix_board_issues("board.kicad_pcb", preset="jlcpcb_standard")
+print(f"Fixed {len(fix_result.fixes_applied)} issues")
 ```
 
 ## Requirements
 
 - Python 3.10+
-- `kiutils` package
-- Node.js 18+ (MCP server only)
-- Optional: KiCad 7+ for DRC and Gerber export
+- Dependencies installed automatically: `kiutils`, `mcp`
 
 ## Safety
 

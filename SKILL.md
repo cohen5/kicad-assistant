@@ -1,7 +1,7 @@
 ---
 name: kicad-assistant
 description: AI-powered design review and repair for KiCad PCB projects - analyze boards, check DFM, auto-fix issues, manage power planes
-metadata: {"moltbot":{"requires":{"bins":["python3"],"env":[]},"os":["darwin","linux"]}}
+metadata: {"requires":{"bins":["python3"],"packages":["kicad-assistant"]},"os":["darwin","linux","windows"]}
 ---
 
 # KiCad Design Assistant
@@ -19,22 +19,22 @@ Use this skill when the user asks about:
 
 ## Prerequisites
 
-- Python 3.10+
-- `pip install kiutils` (pure Python KiCad parser)
-- Optional: KiCad 7+ with `kicad-cli` (for DRC and Gerber export only)
+```bash
+pip install kicad-assistant
+```
 
 ## Capabilities
 
 ### Analysis
 ```python
-from src.board.analyzer import analyze_board
+from kicad_assistant.board.analyzer import analyze_board
 result = analyze_board("/path/to/board.kicad_pcb")
 # Returns: dimensions, track/via counts, component stats, layers
 ```
 
 ### DFM Check
 ```python
-from src.board.dfm import check_dfm
+from kicad_assistant.board.dfm import check_dfm
 result = check_dfm("/path/to/board.kicad_pcb", preset="jlcpcb_standard")
 # Returns: violations with fixable flag
 ```
@@ -43,65 +43,41 @@ Presets: `jlcpcb_standard`, `jlcpcb_advanced`, `pcbway_standard`, `oshpark`
 
 ### Auto-Fix Issues
 ```python
-from src.board.fixer import fix_board_issues
+from kicad_assistant.board.fixer import fix_board_issues
 result = fix_board_issues("/path/to/board.kicad_pcb", preset="jlcpcb_standard")
 # Creates backup, widens tracks, enlarges vias, fixes annular rings
 ```
 
 ### Add Power Plane
 ```python
-from src.board.layers import add_power_plane
+from kicad_assistant.board.layers import add_power_plane
 add_power_plane("/path/to/board.kicad_pcb", layer="In1.Cu", net_name="GND")
 ```
 
 ### Add Stitching Vias
 ```python
-from src.board.zones import add_stitching_vias
+from kicad_assistant.board.zones import add_stitching_vias
 add_stitching_vias("/path/to/board.kicad_pcb", net_name="GND", spacing_mm=5.0)
 ```
 
 ### Add Thermal Vias
 ```python
-from src.board.zones import add_thermal_vias
+from kicad_assistant.board.zones import add_thermal_vias
 add_thermal_vias("/path/to/board.kicad_pcb", component_ref="U1", count=4)
 ```
 
 ### Recommend Stackup
 ```python
-from src.board.layers import recommend_stackup
+from kicad_assistant.board.layers import recommend_stackup
 result = recommend_stackup("/path/to/board.kicad_pcb")
 # Returns: recommended 2/4/6 layer configuration
 ```
 
 ### Export BOM
 ```python
-from src.project.bom import export_bom, format_bom_csv
+from kicad_assistant.project.bom import export_bom, format_bom_csv
 bom = export_bom("/path/to/board.kicad_pcb")
 print(format_bom_csv(bom))
-```
-
-## Legacy Scripts
-
-These scripts still work for CLI usage:
-
-```bash
-# Analyze
-python3 {baseDir}/scripts/analyze_pcb.py --file board.kicad_pcb
-
-# DFM Check
-python3 {baseDir}/scripts/dfm_check.py --file board.kicad_pcb --preset standard
-
-# Export BOM
-python3 {baseDir}/scripts/export_bom.py --file board.kicad_pcb --format csv
-
-# Compare versions
-python3 {baseDir}/scripts/compare_boards.py --old v1.kicad_pcb --new v2.kicad_pcb
-
-# Run DRC (requires kicad-cli)
-python3 {baseDir}/scripts/run_drc.py --file board.kicad_pcb
-
-# Generate Gerbers (requires kicad-cli)
-python3 {baseDir}/scripts/generate_gerbers.py --file board.kicad_pcb --output ./gerbers/
 ```
 
 ## DFM Presets
