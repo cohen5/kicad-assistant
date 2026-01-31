@@ -1,109 +1,117 @@
-# KiCad Assistant Skill
+# KiCad Assistant
 
-An AI skill for analyzing KiCad PCB files, exporting BOMs, running DFM checks, and comparing board versions.
+A Claude Code skill for analyzing KiCad PCB files, exporting BOMs, running DFM checks, and comparing board versions.
 
-## Features
+## What is this?
 
-- **Analyze PCB** - Extract track/via counts, board dimensions, component statistics
-- **Export BOM** - Generate Bill of Materials in CSV or JSON format
-- **DFM Check** - Validate against manufacturing rules (JLCPCB, PCBWay compatible)
-- **Compare Boards** - Diff two PCB versions to see what changed
-- **Run DRC** - Design Rule Check via kicad-cli (requires KiCad 7+)
-- **Generate Gerbers** - Export manufacturing files via kicad-cli
+This is a **skill** for [Claude Code](https://claude.ai/claude-code) (Anthropic's CLI coding assistant). Once installed, Claude can automatically analyze your KiCad PCB files when you ask questions like:
+
+- "Analyze my board at ~/projects/board.kicad_pcb"
+- "Export a BOM from this PCB"
+- "Check if this board meets JLCPCB manufacturing rules"
+- "Compare v1 and v2 of my board"
 
 ## Installation
 
-### For Claude Code / Moltbot
-
 ```bash
-# Clone to skills directory
-git clone https://github.com/YOUR_USERNAME/kicad-assistant ~/.claude/skills/kicad-assistant
+# 1. Clone to Claude Code skills directory
+git clone https://github.com/cohen5/kicad-assistant ~/.claude/skills/kicad-assistant
 
-# Or for Moltbot
-git clone https://github.com/YOUR_USERNAME/kicad-assistant ~/.moltbot/skills/kicad-assistant
-
-# Install Python dependency
+# 2. Install Python dependency
 pip install kiutils
 ```
 
-### Manual Installation
+That's it. Claude Code will automatically detect the skill.
+
+### Optional: For DRC and Gerber export
+
+Install KiCad 7+ and ensure `kicad-cli` is in your PATH.
+
+## Usage with Claude Code
+
+Just ask naturally in a Claude Code conversation:
+
+```
+You: Analyze the PCB at ~/projects/sensor-board.kicad_pcb
+
+Claude: [runs analyze_pcb.py and returns stats]
+        Board: 45.2 x 32.1 mm
+        Components: 47 (23 capacitors, 12 resistors, 5 ICs...)
+        Tracks: 234, Vias: 89
+        ...
+```
+
+```
+You: Does this board meet JLCPCB specs?
+
+Claude: [runs dfm_check.py with standard preset]
+        DFM Check: PASS
+        No violations found.
+```
+
+```
+You: Export BOM as CSV
+
+Claude: [runs export_bom.py]
+        Reference,Value,Footprint,Quantity
+        C1,100nF,0402,12
+        ...
+```
+
+## Features
+
+| Feature | Description | Requires KiCad? |
+|---------|-------------|-----------------|
+| **Analyze PCB** | Track/via counts, dimensions, component stats | No |
+| **Export BOM** | CSV or JSON bill of materials | No |
+| **DFM Check** | Validate against fab rules (JLCPCB, PCBWay) | No |
+| **Compare Boards** | Diff two PCB versions | No |
+| **Run DRC** | Design rule check | Yes (kicad-cli) |
+| **Generate Gerbers** | Export manufacturing files | Yes (kicad-cli) |
+
+## CLI Usage (without Claude)
+
+You can also run the scripts directly:
 
 ```bash
-# Copy files
-cp -r kicad-assistant ~/.claude/skills/
+# Analyze
+python3 ~/.claude/skills/kicad-assistant/scripts/analyze_pcb.py \
+  --file board.kicad_pcb --format text
 
-# Install dependency
-pip install kiutils
+# Export BOM
+python3 ~/.claude/skills/kicad-assistant/scripts/export_bom.py \
+  --file board.kicad_pcb --format csv
 
-# Optional: for DRC and Gerber export
-# Install KiCad 7+ and ensure kicad-cli is in PATH
+# DFM Check
+python3 ~/.claude/skills/kicad-assistant/scripts/dfm_check.py \
+  --file board.kicad_pcb --preset standard
+
+# Compare versions
+python3 ~/.claude/skills/kicad-assistant/scripts/compare_boards.py \
+  --old v1.kicad_pcb --new v2.kicad_pcb
 ```
 
-## Usage
+## DFM Presets
 
-### Analyze a PCB
+| Preset | Min Track | Min Via Drill | Use Case |
+|--------|-----------|---------------|----------|
+| `standard` | 0.127mm (5mil) | 0.3mm | JLCPCB, PCBWay standard |
+| `budget` | 0.15mm | 0.3mm | Cheaper fabs |
+| `advanced` | 0.09mm (3.5mil) | 0.2mm | Premium fabs |
 
 ```bash
-python3 scripts/analyze_pcb.py --file board.kicad_pcb --format text
-```
-
-Output:
-```
-PCB Analysis: board.kicad_pcb
-
-Board Dimensions:
-  Size: 38.95 x 15 mm
-  Area: 584.25 mm²
-
-Routing:
-  Tracks: 40
-  Vias: 30
-  Zones: 5
-  Nets: 50
-  Layers used: B.Cu, F.Cu
-  Track widths: 0.2934 - 0.75 mm (2 unique)
-
-Components:
-  Total footprints: 39
-    C: 18
-    R: 5
-    U: 4
-    ...
-```
-
-### Export BOM
-
-```bash
-python3 scripts/export_bom.py --file board.kicad_pcb --format csv
-```
-
-### DFM Check
-
-```bash
-# Standard rules (JLCPCB/PCBWay compatible)
-python3 scripts/dfm_check.py --file board.kicad_pcb --preset standard
-
-# Budget fab rules (looser tolerances)
-python3 scripts/dfm_check.py --file board.kicad_pcb --preset budget
-
-# Advanced fab rules (tighter tolerances)
-python3 scripts/dfm_check.py --file board.kicad_pcb --preset advanced
-
-# List all presets
-python3 scripts/dfm_check.py --list-presets
-```
-
-### Compare Board Versions
-
-```bash
-python3 scripts/compare_boards.py --old v1.kicad_pcb --new v2.kicad_pcb --format text
+python3 scripts/dfm_check.py --list-presets  # See all rules
 ```
 
 ## Requirements
 
 - Python 3.10+
-- `kiutils` - Pure Python KiCad file parser (no KiCad installation needed)
-- Optional: KiCad 7+ with `kicad-cli` in PATH (for DRC and Gerber export)
+- `kiutils` (pure Python, no KiCad needed)
+- Optional: KiCad 7+ for DRC and Gerber export
+
+## Example
+
+An example board (`STRF.kicad_pcb`) is included in the `examples/` folder.
 
 ## License
 
