@@ -1,5 +1,7 @@
 # KiCad Design Assistant
 
+[![PyPI](https://img.shields.io/pypi/v/kicad-assistant)](https://pypi.org/project/kicad-assistant/)
+
 AI-powered design review and repair tool for KiCad PCB projects.
 
 **Features:**
