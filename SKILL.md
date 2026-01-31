@@ -1,106 +1,123 @@
 ---
 name: kicad-assistant
-description: Analyze KiCad PCB files, run DRC checks, export BOMs and Gerbers
+description: AI-powered design review and repair for KiCad PCB projects - analyze boards, check DFM, auto-fix issues, manage power planes
 metadata: {"moltbot":{"requires":{"bins":["python3"],"env":[]},"os":["darwin","linux"]}}
 ---
 
-# KiCad PCB Assistant
+# KiCad Design Assistant
+
+AI-powered design review and repair tool for KiCad PCB projects. Analyzes boards, checks manufacturing rules, auto-fixes issues, and manages power planes.
 
 Use this skill when the user asks about:
-- PCB design analysis, DRC checks, or design rule violations
-- BOM (Bill of Materials) export or component lists
+- PCB design analysis, DFM checks, or design rule violations
+- Auto-fixing DFM issues (track widths, via sizes, annular rings)
+- Adding power planes, ground planes, or configuring layer stackups
+- Adding stitching vias or thermal vias
+- BOM (Bill of Materials) export
+- Comparing board versions
 - Gerber generation or manufacturing file export
-- Track widths, via counts, layer stackups, or board statistics
-- Panelization or manufacturing preparation
 
 ## Prerequisites
 
-The following must be installed on the Moltbot host:
 - Python 3.10+
-- `pip install kiutils` (pure Python KiCad file parser - no KiCad installation required)
-- Optional: KiCad 7+ with `kicad-cli` in PATH (only needed for DRC and Gerber export)
-- Optional: `pip install kikit` (only needed for panelization)
+- `pip install kiutils` (pure Python KiCad parser)
+- Optional: KiCad 7+ with `kicad-cli` (for DRC and Gerber export only)
 
-## Available Commands
+## Capabilities
 
-### Analyze a PCB file
-
-```bash
-python3 {baseDir}/scripts/analyze_pcb.py --file "/path/to/board.kicad_pcb"
+### Analysis
+```python
+from src.board.analyzer import analyze_board
+result = analyze_board("/path/to/board.kicad_pcb")
+# Returns: dimensions, track/via counts, component stats, layers
 ```
 
-Returns: Track count, via count, component count, layer usage, board dimensions.
-
-Options:
-- `--format json` (default) or `--format text` for human-readable output
-
-### Run DRC Check
-
-```bash
-python3 {baseDir}/scripts/run_drc.py --file "/path/to/board.kicad_pcb"
+### DFM Check
+```python
+from src.board.dfm import check_dfm
+result = check_dfm("/path/to/board.kicad_pcb", preset="jlcpcb_standard")
+# Returns: violations with fixable flag
 ```
 
-Returns: List of DRC violations with coordinates and severity.
+Presets: `jlcpcb_standard`, `jlcpcb_advanced`, `pcbway_standard`, `oshpark`
 
-Options:
-- `--output-dir "/path/"` to specify where to save the DRC report
+### Auto-Fix Issues
+```python
+from src.board.fixer import fix_board_issues
+result = fix_board_issues("/path/to/board.kicad_pcb", preset="jlcpcb_standard")
+# Creates backup, widens tracks, enlarges vias, fixes annular rings
+```
 
-Note: Requires KiCad 7+ with `kicad-cli` in PATH.
+### Add Power Plane
+```python
+from src.board.layers import add_power_plane
+add_power_plane("/path/to/board.kicad_pcb", layer="In1.Cu", net_name="GND")
+```
+
+### Add Stitching Vias
+```python
+from src.board.zones import add_stitching_vias
+add_stitching_vias("/path/to/board.kicad_pcb", net_name="GND", spacing_mm=5.0)
+```
+
+### Add Thermal Vias
+```python
+from src.board.zones import add_thermal_vias
+add_thermal_vias("/path/to/board.kicad_pcb", component_ref="U1", count=4)
+```
+
+### Recommend Stackup
+```python
+from src.board.layers import recommend_stackup
+result = recommend_stackup("/path/to/board.kicad_pcb")
+# Returns: recommended 2/4/6 layer configuration
+```
 
 ### Export BOM
-
-```bash
-python3 {baseDir}/scripts/export_bom.py --file "/path/to/board.kicad_pcb" --format csv
+```python
+from src.project.bom import export_bom, format_bom_csv
+bom = export_bom("/path/to/board.kicad_pcb")
+print(format_bom_csv(bom))
 ```
 
-Outputs: CSV file with Reference, Value, Footprint, Quantity.
+## Legacy Scripts
 
-Options:
-- `--format csv` (default) or `--format json`
-- `--output "/path/to/bom.csv"` to save to file instead of stdout
-
-### Generate Gerbers
+These scripts still work for CLI usage:
 
 ```bash
-python3 {baseDir}/scripts/generate_gerbers.py --file "/path/to/board.kicad_pcb" --output "/path/to/output/"
+# Analyze
+python3 {baseDir}/scripts/analyze_pcb.py --file board.kicad_pcb
+
+# DFM Check
+python3 {baseDir}/scripts/dfm_check.py --file board.kicad_pcb --preset standard
+
+# Export BOM
+python3 {baseDir}/scripts/export_bom.py --file board.kicad_pcb --format csv
+
+# Compare versions
+python3 {baseDir}/scripts/compare_boards.py --old v1.kicad_pcb --new v2.kicad_pcb
+
+# Run DRC (requires kicad-cli)
+python3 {baseDir}/scripts/run_drc.py --file board.kicad_pcb
+
+# Generate Gerbers (requires kicad-cli)
+python3 {baseDir}/scripts/generate_gerbers.py --file board.kicad_pcb --output ./gerbers/
 ```
 
-Outputs: Gerber files + drill files ready for manufacturing.
+## DFM Presets
 
-Note: Requires KiCad 7+ with `kicad-cli` in PATH.
-
-### Panelize Board (via KiKit)
-
-```bash
-kikit panelize grid --gridsize 2 2 --space 3 "/path/to/board.kicad_pcb" "/path/to/panel.kicad_pcb"
-```
-
-Creates a 2x2 panel with 3mm spacing between boards.
-
-### Compare Two Board Versions
-
-```bash
-python3 {baseDir}/scripts/compare_boards.py --old "/path/to/v1.kicad_pcb" --new "/path/to/v2.kicad_pcb"
-```
-
-Returns: Summary of added/removed components and routing changes.
-
-### DFM (Design for Manufacturing) Check
-
-```bash
-python3 {baseDir}/scripts/dfm_check.py --file "/path/to/board.kicad_pcb"
-```
-
-Returns: Manufacturing rule violations (track width, clearance, drill size, etc.)
-
-Options:
-- `--rules "/path/to/rules.json"` to use custom DFM rules
+| Preset | Min Track | Min Via Drill | Use Case |
+|--------|-----------|---------------|----------|
+| `jlcpcb_standard` | 0.127mm (5mil) | 0.3mm | JLCPCB standard |
+| `jlcpcb_advanced` | 0.09mm (3.5mil) | 0.2mm | JLCPCB HDI |
+| `pcbway_standard` | 0.127mm | 0.3mm | PCBWay |
+| `oshpark` | 0.152mm (6mil) | 0.254mm | OSH Park |
 
 ## Response Guidelines
 
-- Always confirm the file path exists before running commands
-- Present DRC results in a clear summary (X errors, Y warnings)
-- For BOM exports, offer to format as table or save to file
-- If KiCad or dependencies aren't installed, inform the user and suggest alternatives
-- When analyzing boards, highlight any concerning metrics (e.g., very high via count, unusual layer usage)
-- For DFM checks, explain what each violation means and how to fix it
+- Always create backups before modifying files
+- Confirm file paths exist before operations
+- For DFM issues, explain what they mean and offer to auto-fix
+- When adding power planes, ask about net names (GND, VCC, +3V3)
+- For stackup recommendations, explain the tradeoffs
+- Present results clearly with counts and summaries

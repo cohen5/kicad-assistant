@@ -1,18 +1,17 @@
-# Quick Install Guide for Coworkers
+# Quick Install Guide
 
 ## For Claude Code Users (2 commands)
 
 ```bash
-# Install as Claude Code skill
 git clone https://github.com/cohen5/kicad-assistant ~/.claude/skills/kicad-assistant
 pip install kiutils
 ```
 
-Done. Restart Claude Code and try: "Analyze the PCB at path/to/board.kicad_pcb"
+Restart Claude Code. Try: "Analyze the PCB at path/to/board.kicad_pcb"
 
 ---
 
-## For Claude Desktop / Cursor Users
+## For MCP Users (Claude Desktop, Cursor, etc.)
 
 ### Step 1: Clone and build
 
@@ -22,10 +21,9 @@ pip install kiutils
 cd ~/kicad-assistant/mcp && npm install && npm run build
 ```
 
-### Step 2: Add to your config
+### Step 2: Add to MCP config
 
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-
+**Claude Code** (`~/.claude/mcp.json`):
 ```json
 {
   "mcpServers": {
@@ -37,8 +35,7 @@ cd ~/kicad-assistant/mcp && npm install && npm run build
 }
 ```
 
-**Claude Code** (`~/.claude/mcp.json`):
-
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -52,22 +49,20 @@ cd ~/kicad-assistant/mcp && npm install && npm run build
 
 Replace `YOUR_USERNAME` with your actual username.
 
-### Step 3: Restart your app
+### Step 3: Restart
 
-Restart Claude Desktop or Cursor. The KiCad tools should now be available.
+Restart your app. KiCad tools should now be available.
 
 ---
 
 ## Verify Installation
 
-Test with the included example board:
-
 ```bash
-python3 ~/kicad-assistant/scripts/analyze_pcb.py \
-  --file ~/kicad-assistant/examples/STRF.kicad_pcb --format text
+python3 ~/kicad-assistant/src/board/analyzer.py
+# Or with the example:
+cd ~/kicad-assistant
+python3 -c "from src.board.analyzer import analyze_board; print(analyze_board('examples/STRF.kicad_pcb'))"
 ```
-
-You should see board statistics including dimensions, component counts, etc.
 
 ---
 
@@ -75,12 +70,15 @@ You should see board statistics including dimensions, component counts, etc.
 
 | Tool | What it does |
 |------|--------------|
-| analyze_pcb | Board stats (dimensions, components, routing) |
-| export_bom | Bill of Materials (CSV or JSON) |
-| check_dfm | DFM validation (JLCPCB, PCBWay rules) |
-| compare_boards | Diff two PCB versions |
-| run_drc | KiCad DRC (requires kicad-cli) |
-| generate_gerbers | Export Gerbers (requires kicad-cli) |
+| `analyze_board` | Board stats (dimensions, components, routing) |
+| `check_dfm` | DFM validation (JLCPCB, PCBWay, OSHPark) |
+| `fix_board_issues` | Auto-fix DFM violations |
+| `add_power_plane` | Add GND/VCC copper pour |
+| `add_stitching_vias` | Add ground stitching |
+| `add_thermal_vias` | Add thermal vias under components |
+| `recommend_stackup` | Suggest layer configuration |
+| `export_bom` | Export BOM (CSV or JSON) |
+| `check_erc` | Schematic electrical rule check |
 
 ---
 
