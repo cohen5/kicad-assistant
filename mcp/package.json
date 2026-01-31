@@ -1,0 +1,39 @@
+{
+  "name": "kicad-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for KiCad PCB analysis and manufacturing tools",
+  "type": "module",
+  "bin": {
+    "kicad-mcp": "./bin/kicad-mcp"
+  },
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "kicad",
+    "pcb",
+    "eda",
+    "electronics",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cohen5/kicad-assistant"
+  }
+}

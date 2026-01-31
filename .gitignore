@@ -6,3 +6,8 @@ __pycache__/
 dist/
 build/
 .env
+
+# MCP server
+node_modules/
+mcp/dist/
+mcp/node_modules/
